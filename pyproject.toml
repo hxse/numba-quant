@@ -1,0 +1,21 @@
+# pyproject.toml
+
+[project]
+name = "numba-quant"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "astunparse>=1.6.3",
+    "numba>=0.61.2",
+    "pandas>=2.3.0",
+    "pytest>=8.4.0",
+]
+
+[dependency-groups]
+dev = [
+    "pandas-ta @ git+https://github.com/hxse/pandas-ta.git@development",
+    "ta-lib @ https://github.com/cgohlke/talib-build/releases/download/v0.6.3/ta_lib-0.6.3-cp312-cp312-win_amd64.whl ; sys_platform == 'win32'",
+    "ta-lib ; sys_platform != 'win32'",
+]
