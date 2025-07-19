@@ -12,8 +12,8 @@ import time
 from indicators.indicators_config import create_params, config
 
 from utils.data_loading import (
-    load_ohlcv_from_csv,
-    convert_ohlcv_numpy,
+    load_tohlcv_from_csv,
+    convert_tohlcv_numpy,
     convert_to_pandas_dataframe,
 )
 from utils.constants import (
@@ -25,7 +25,6 @@ from utils.constants import (
     numba_float,
 )
 
-
 start_time = time.time()
 
 from numba_calculation_api import (
@@ -35,19 +34,17 @@ from numba_calculation_api import (
     precompiled,
 )
 
-
 end_time = time.time()
 print(f"numba模块导入冷启动时间: {end_time - start_time:.4f} 秒")
 
-
 if __name__ == "__main__":
-    data_size = 1000 * 20
+    data_size = 40 * 1000
 
-    csv_file_path = "csv/BTC_USDT/future live/4h/2022-01-01 00_00_00.csv"
+    csv_file_path = "database/live/BTC_USDT/15m/BTC_USDT_15m_20230228 160000.csv"
 
-    df = load_ohlcv_from_csv(csv_file_path, data_size)
+    df = load_tohlcv_from_csv(csv_file_path, data_size)
 
-    ohlcv_numpy = convert_ohlcv_numpy(df)
+    ohlcv_numpy = convert_tohlcv_numpy(df)
 
     np_params, np_load, result_name, segmented_params = create_params(config)
 
@@ -74,17 +71,14 @@ if __name__ == "__main__":
 
     print(f"calculate_jit_timer 冷启动时间: {end_time - start_time:.4f} 秒")
     print(f"out_arrays shape: {out_arrays.shape}")
-    for select in range(np_params.shape[0]):
-        # 将结果转换为 Pandas DataFrame
-        df_result = convert_to_pandas_dataframe(
-            segmented_params[select], result_name, out_arrays[select]
-        )
-        print("-" * 30)
-        print(f"@jit 参数组合{select} 的结果 DataFrame:")
-        print(df_result)
-        import pdb
-
-        pdb.set_trace()
+    # for select in range(np_params.shape[0]):
+    #     # 将结果转换为 Pandas DataFrame
+    #     df_result = convert_to_pandas_dataframe(segmented_params[select],
+    #                                             result_name,
+    #                                             out_arrays[select])
+    #     print("-" * 30)
+    #     print(f"@jit 参数组合{select} 的结果 DataFrame:")
+    #     print("df_result shape", df_result.shape)
 
     print("#### 运行 CPU (@njit 并行) ####\n")
     start_time = time.time()
@@ -92,14 +86,14 @@ if __name__ == "__main__":
     end_time = time.time()
     print(f"calculate_njit_timer 冷启动时间: {end_time - start_time:.4f} 秒")
     print(f"out_arrays shape: {out_arrays.shape}")
-    for select in range(np_params.shape[0]):
-        # 将结果转换为 Pandas DataFrame
-        df_result = convert_to_pandas_dataframe(
-            segmented_params[select], result_name, out_arrays[select]
-        )
-        print("-" * 30)
-        print(f"@njit 参数组合{select} 的结果 DataFrame:")
-        print(df_result)
+    # for select in range(np_params.shape[0]):
+    #     # 将结果转换为 Pandas DataFrame
+    #     df_result = convert_to_pandas_dataframe(segmented_params[select],
+    #                                             result_name,
+    #                                             out_arrays[select])
+    #     print("-" * 30)
+    #     print(f"@njit 参数组合{select} 的结果 DataFrame:")
+    #     print("df_result shape", df_result.shape)
 
     print("#### 运行 GPU (调用 @cuda.jit(device=True) 函数) ####\n")
     start_time = time.time()
@@ -107,11 +101,11 @@ if __name__ == "__main__":
     end_time = time.time()
     print(f"calculate_cuda_timer 冷启动时间: {end_time - start_time:.4f} 秒")
     print(f"out_arrays shape: {out_arrays.shape}")
-    for select in range(np_params.shape[0]):
-        # 将结果转换为 Pandas DataFrame
-        df_result = convert_to_pandas_dataframe(
-            segmented_params[select], result_name, out_arrays[select]
-        )
-        print("-" * 30)
-        print(f"@cuda.jit 参数组合{select} 的结果 DataFrame:")
-        print(df_result)
+    # for select in range(np_params.shape[0]):
+    #     # 将结果转换为 Pandas DataFrame
+    #     df_result = convert_to_pandas_dataframe(segmented_params[select],
+    #                                             result_name,
+    #                                             out_arrays[select])
+    #     print("-" * 30)
+    #     print(f"@cuda.jit 参数组合{select} 的结果 DataFrame:")
+    #     print("df_result shape", df_result.shape)

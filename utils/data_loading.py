@@ -2,8 +2,10 @@ import numpy as np
 import pandas as pd
 from utils.constants import ENABLE_CACHE, np_int, np_float, numba_int, numba_float
 
+tohlcv_name = ["time", "open", "high", "low", "close", "volume"]
 
-def load_ohlcv_from_csv(file_path: str, data_size: int) -> np.ndarray:
+
+def load_tohlcv_from_csv(file_path: str, data_size: int = None) -> np.ndarray:
     """
     从 CSV 文件加载 OHLCV 数据并进行处理。
 
@@ -14,22 +16,25 @@ def load_ohlcv_from_csv(file_path: str, data_size: int) -> np.ndarray:
     Returns:
         np.ndarray: 处理后的 OHLCV 数据。
     """
-    df = pd.read_csv(file_path, dtype=np_float)
-    df.columns = ["time", "open", "high", "low", "close", "volume"]
+    df = pd.read_csv(file_path)
+    # 将 timestamp 列重命名为 time
+    if "timestamp" in df.columns:
+        df.rename(columns={"timestamp": "time"}, inplace=True)
+    # 将数值列转换为 np_float
+    numeric_cols = tohlcv_name
+    for col in numeric_cols:
+        if col in df.columns:
+            df[col] = df[col].astype(np_float)
     df["date"] = pd.to_datetime(df["time"], unit="ms")
 
-    if len(df) > data_size:
+    if data_size and len(df) > data_size:
         df = df.iloc[:data_size]
 
     return df
 
 
-def convert_ohlcv_numpy(df):
-    return (
-        df[["time", "open", "high", "low", "close", "volume"]]
-        .to_numpy()
-        .astype(np_float)
-    )
+def convert_tohlcv_numpy(df):
+    return df[tohlcv_name].to_numpy().astype(np_float)
 
 
 def convert_to_pandas_dataframe(
@@ -65,8 +70,9 @@ def convert_to_pandas_dataframe(
         param_suffix = ""
         if params_for_indicator:
             param_suffix = "_" + "_".join(
-                map(str, [int(p) if p == int(p) else p for p in params_for_indicator])
-            )
+                map(str, [
+                    int(p) if p == int(p) else p for p in params_for_indicator
+                ]))
 
         for name, display_flag in sublist_names_with_flags:
             if filter_columns and display_flag == 0:
